@@ -1,0 +1,142 @@
+# ==========================================================
+# HyBERT: Hyperbolic BERT for Automatic ICD Coding
+# Main Program
+# Author: Dereje Gizaw Weyessa
+# ==========================================================
+
+import os
+import random
+import argparse
+import numpy as np
+import torch
+
+from transformers import AutoTokenizer
+
+from models.hybert import HyBERT
+from datasets.mimic_loader import MIMICDataset
+from trainer import Trainer
+
+
+def set_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+
+def get_args():
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("--train_path", type=str,
+                        default="data/train.csv")
+
+    parser.add_argument("--valid_path", type=str,
+                        default="data/valid.csv")
+
+    parser.add_argument("--bert_model",
+                        default="emilyalsentzer/Bio_ClinicalBERT")
+
+    parser.add_argument("--epochs",
+                        default=30,
+                        type=int)
+
+    parser.add_argument("--batch_size",
+                        default=8,
+                        type=int)
+
+    parser.add_argument("--lr",
+                        default=2e-5,
+                        type=float)
+
+    parser.add_argument("--hyper_lr",
+                        default=1e-3,
+                        type=float)
+
+    parser.add_argument("--hidden_size",
+                        default=768,
+                        type=int)
+
+    parser.add_argument("--max_length",
+                        default=4096,
+                        type=int)
+
+    parser.add_argument("--num_codes",
+                        default=8929,
+                        type=int)
+
+    parser.add_argument("--embedding_dim",
+                        default=200,
+                        type=int)
+
+    parser.add_argument("--device",
+                        default="cuda")
+
+    return parser.parse_args()
+
+
+def main():
+
+    args = get_args()
+
+    set_seed(42)
+
+    device = torch.device(
+        args.device if torch.cuda.is_available()
+        else "cpu"
+    )
+
+    print(device)
+
+    tokenizer = AutoTokenizer.from_pretrained(
+        args.bert_model
+    )
+
+    train_dataset = MIMICDataset(
+        args.train_path,
+        tokenizer,
+        args.max_length
+    )
+
+    valid_dataset = MIMICDataset(
+        args.valid_path,
+        tokenizer,
+        args.max_length
+    )
+
+    train_loader = torch.utils.data.DataLoader(
+        train_dataset,
+        batch_size=args.batch_size,
+        shuffle=True
+    )
+
+    valid_loader = torch.utils.data.DataLoader(
+        valid_dataset,
+        batch_size=args.batch_size
+    )
+
+    model = HyBERT(
+        bert_name=args.bert_model,
+        num_codes=args.num_codes,
+        embedding_dim=args.embedding_dim,
+        hidden_size=args.hidden_size
+    )
+
+    model.to(device)
+
+    trainer = Trainer(
+        model=model,
+        train_loader=train_loader,
+        valid_loader=valid_loader,
+        lr=args.lr,
+        hyper_lr=args.hyper_lr,
+        device=device
+    )
+
+    trainer.train(args.epochs)
+
+
+if __name__ == "__main__":
+    main()
