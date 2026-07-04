@@ -1,0 +1,100 @@
+# ==========================================
+# visualization.py
+# UMAP + Attention Heatmap for HyBERT
+# ==========================================
+
+import numpy as np
+import torch
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+import umap
+
+
+# -------------------------------------------------
+# 1. UMAP Visualization for ICD Embeddings
+# -------------------------------------------------
+
+def plot_umap(embeddings, labels=None, title="UMAP of ICD Embeddings"):
+
+"""
+embeddings: Tensor or numpy [N, D]
+labels: optional [N]
+"""
+
+if torch.is_tensor(embeddings):
+embeddings = embeddings.detach().cpu().numpy()
+
+reducer = umap.UMAP(
+n_neighbors=15,
+min_dist=0.1,
+metric="cosine",
+random_state=42
+)
+
+emb_2d = reducer.fit_transform(embeddings)
+
+plt.figure(figsize=(8, 6))
+
+if labels is not None:
+scatter = plt.scatter(
+emb_2d[:, 0],
+emb_2d[:, 1],
+c=labels,
+cmap="tab10",
+s=20,
+alpha=0.8
+)
+plt.legend(*scatter.legend_elements(), title="Classes")
+
+else:
+plt.scatter(
+emb_2d[:, 0],
+emb_2d[:, 1],
+s=20,
+alpha=0.8
+)
+
+plt.title(title)
+plt.xlabel("UMAP-1")
+plt.ylabel("UMAP-2")
+plt.grid(True, alpha=0.3)
+plt.show()
+
+
+# -------------------------------------------------
+# 2. Attention Heatmap for Code-wise Attention
+# -------------------------------------------------
+
+def plot_attention_heatmap(attention, tokens, code_id=None):
+
+"""
+attention: [C, L] or [L, C]
+tokens: list of tokens
+code_id: optional ICD code index
+"""
+
+if torch.is_tensor(attention):
+attention = attention.detach().cpu().numpy()
+
+# Ensure shape [C, L]
+if attention.shape[0] == len(tokens):
+attention = attention.T
+
+plt.figure(figsize=(12, 4))
+
+sns.heatmap(
+attention,
+cmap="YlOrRd",
+xticklabels=tokens,
+yticklabels=False
+)
+
+title = "Attention Heatmap"
+if code_id is not None:
+title += f" | Code {code_id}"
+
+plt.title(title)
+plt.xticks(rotation=90)
+plt.tight_layout()
+plt.show()
