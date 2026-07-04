@@ -1,0 +1,36 @@
+# ==========================================
+# hyperbolic_embedding.py
+# Hyperbolic ICD Embedding (Poincaré Ball)
+# ==========================================
+
+import torch
+import torch.nn as nn
+import geoopt
+
+
+class HyperbolicEmbedding(nn.Module):
+"""
+Hyperbolic ICD Code Embedding
+"""
+
+def __init__(self,
+num_codes,
+emb_dim=200,
+c=1.0):
+super(HyperbolicEmbedding, self).__init__()
+
+# Poincaré Ball manifold
+self.manifold = geoopt.PoincareBall(c=c)
+
+# Learnable hyperbolic embeddings
+self.embedding = geoopt.ManifoldParameter(
+torch.randn(num_codes, emb_dim) * 1e-3,
+manifold=self.manifold
+)
+
+def forward(self, code_ids=None):
+
+if code_ids is None:
+return self.embedding
+
+return self.embedding[code_ids]

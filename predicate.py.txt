@@ -1,0 +1,62 @@
+# ==========================================
+# predict.py
+# HyBERT Prediction Module
+# ==========================================
+
+import torch
+from transformers import AutoTokenizer
+from models.hybert import HyBERT
+
+
+class Predictor:
+
+def __init__(self,
+model_path,
+bert_name,
+num_codes,
+device="cuda"):
+
+self.device = torch.device(
+device if torch.cuda.is_available() else "cpu"
+)
+
+self.tokenizer = AutoTokenizer.from_pretrained(bert_name)
+
+self.model = HyBERT(
+bert_name=bert_name,
+num_codes=num_codes
+)
+
+self.model.load_state_dict(
+torch.load(model_path, map_location=self.device)
+)
+
+self.model.to(self.device)
+self.model.eval()
+
+@torch.no_grad()
+def predict(self, text, threshold=0.5):
+
+inputs = self.tokenizer(
+text,
+max_length=512,
+truncation=True,
+padding="max_length",
+return_tensors="pt"
+)
+
+input_ids = inputs["input_ids"].to(self.device)
+attention_mask = inputs["attention_mask"].to(self.device)
+
+outputs = self.model(
+input_ids=input_ids,
+attention_mask=attention_mask
+)
+
+logits = outputs["logits"]
+
+probs = torch.sigmoid(logits).cpu().numpy()[0]
+
+pred_ids = (probs >= threshold).nonzero()[0]
+
+return pred_ids, probs

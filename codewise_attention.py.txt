@@ -1,0 +1,54 @@
+# ==========================================
+# codewise_attention.py
+# HyBERT Code-wise Attention Module
+# ==========================================
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+
+class CodeWiseAttention(nn.Module):
+"""
+Code-wise Attention for Automatic ICD Coding
+
+Inputs:
+token_features : [B, L, H]
+code_embeddings: [C, H]
+
+Outputs:
+context_vectors : [B, C, H]
+attention_scores: [B, C, L]
+"""
+
+def __init__(self, hidden_size):
+super(CodeWiseAttention, self).__init__()
+
+self.query_proj = nn.Linear(hidden_size, hidden_size)
+self.key_proj = nn.Linear(hidden_size, hidden_size)
+
+def forward(self, token_features, code_embeddings):
+
+# token_features: (Batch, Seq_len, Hidden)
+# code_embeddings: (Num_codes, Hidden)
+
+Q = self.query_proj(code_embeddings) # (C, H)
+K = self.key_proj(token_features) # (B, L, H)
+
+# Attention score
+scores = torch.matmul(
+K,
+Q.transpose(0, 1)
+) # (B, L, C)
+
+scores = scores.transpose(1, 2) # (B, C, L)
+
+attention = F.softmax(scores, dim=-1)
+
+# Weighted sum of token representations
+context = torch.matmul(
+attention,
+token_features
+) # (B, C, H)
+
+return context, attention

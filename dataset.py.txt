@@ -1,0 +1,55 @@
+# ==========================================
+# dataset.py
+# MIMIC-III / NCoD Data Loader (Short)
+# ==========================================
+
+import torch
+from torch.utils.data import Dataset
+import pandas as pd
+
+
+class ICDDataset(Dataset):
+
+def __init__(self,
+file_path,
+tokenizer,
+label2id,
+max_length=512):
+
+self.data = pd.read_csv(file_path)
+self.tokenizer = tokenizer
+self.label2id = label2id
+self.max_length = max_length
+
+def encode_labels(self, labels):
+
+multi_hot = torch.zeros(len(self.label2id))
+
+for code in str(labels).split(";"):
+code = code.strip()
+if code in self.label2id:
+multi_hot[self.label2id[code]] = 1
+
+return multi_hot
+
+def __len__(self):
+return len(self.data)
+
+def __getitem__(self, idx):
+
+text = str(self.data.iloc[idx]["text"])
+labels = self.data.iloc[idx]["labels"]
+
+encoding = self.tokenizer(
+text,
+padding="max_length",
+truncation=True,
+max_length=self.max_length,
+return_tensors="pt"
+)
+
+return {
+"input_ids": encoding["input_ids"].squeeze(0),
+"attention_mask": encoding["attention_mask"].squeeze(0),
+"labels": self.encode_labels(labels)
+}

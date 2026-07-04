@@ -1,0 +1,33 @@
+# ==========================================
+# bert_encoder.py
+# BERT Base Encoder
+# ==========================================
+
+import torch
+import torch.nn as nn
+from transformers import AutoModel
+
+
+class BERTEncoder(nn.Module):
+def __init__(self,
+model_name="bert-base-uncased",
+dropout=0.1):
+super(BERTEncoder, self).__init__()
+
+self.bert = AutoModel.from_pretrained(model_name)
+self.dropout = nn.Dropout(dropout)
+
+def forward(self, input_ids, attention_mask):
+
+outputs = self.bert(
+input_ids=input_ids,
+attention_mask=attention_mask
+)
+
+# Token embeddings: [Batch, Seq_len, Hidden]
+sequence_output = outputs.last_hidden_state
+
+# CLS embedding: [Batch, Hidden]
+cls_output = self.dropout(outputs.pooler_output)
+
+return sequence_output, cls_output
