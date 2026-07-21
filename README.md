@@ -2,7 +2,7 @@
 
 HyBERT architecture includes:
 
-BERT encoder (e.g., BioBERT/ClinicalBERT)
+BERT encoder (e.g  base BERT)
 Hyperbolic (Poincaré ball) ICD embeddings
 Tangent-space mapping (LogMap)
 Code-wise attention mechanism
