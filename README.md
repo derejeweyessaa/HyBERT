@@ -1,4 +1,55 @@
 
+HyBERT/
+│
+├── README.md
+├── LICENSE
+├── requirements.txt
+├── environment.yml
+├── setup.py
+├── .gitignore
+├── config.py
+├── train.py
+├── evaluate.py
+├── predict.py
+├── inference.py
+│
+├── models/
+│   ├── hybert.py
+│   ├── bert_encoder.py
+│   ├── hyperbolic_embedding.py
+│   ├── tangent_mapping.py
+│   ├── codewise_attention.py
+│   ├── classifier.py
+│   └── loss.py
+│
+├── datasets/
+│   ├── dataset.py
+│   ├── preprocessing.py
+│   └── split_dataset.py
+│
+├── trainer/
+│   ├── trainer.py
+│   ├── evaluator.py
+│   └── statistics.py
+│
+├── utils/
+│   ├── metrics.py
+│   ├── visualization.py
+│   └── helper.py
+│
+├── checkpoints/
+│   └── hybert_best.pt
+│
+├── notebooks/
+│   └── HyBERT_Demo.ipynb
+│
+├── figures/
+│   ├── architecture.png
+│   ├── umap.png
+│   └── attention_heatmap.png
+│
+└── data/
+    └── README.md
 
 HyBERT architecture includes:
 
