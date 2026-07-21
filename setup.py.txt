@@ -1,0 +1,22 @@
+setup.py
+from setup tools import setup, find_packages
+
+setup(
+name="hybert",
+version="1.0.0",
+description="HyBERT for Automatic ICD Coding",
+author="Dereje Gizaw Weyessa",
+packages=find_packages(),
+install_requires=[
+"torch",
+"transformers",
+"geoopt",
+"numpy",
+"pandas",
+"scikit-learn",
+"matplotlib",
+"seaborn",
+"umap-learn",
+"scipy"
+],
+)
